@@ -87,6 +87,7 @@ export default function GameApp(){
   const [toast,setToast]=useState('');
   const [ready,setReady]=useState(false);
   const [assetsReady,setAssetsReady]=useState(false);
+  const onAssetsReady=useCallback(()=>setAssetsReady(true),[]);
   const [installPrompt,setInstallPrompt]=useState<Event|null>(null);
   const [chosen,setChosen]=useState<FishId>('ca-thu');
   const notificationTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
@@ -150,7 +151,7 @@ export default function GameApp(){
   const openTarget=(t:HarborTarget)=>setPanel(t);
   const chosenFish=FISH.find(f=>f.id===chosen)!;
   return <main className="site-bg">
-  {!assetsReady&&<GameLoading onReady={()=>setAssetsReady(true)}/>}
+  {!assetsReady&&<GameLoading onReady={onAssetsReady}/>}
   <div className="game-shell">
     <header className="game-topbar">
       <button className="profile" onClick={()=>setPanel('account')} aria-label="Tài khoản"><span className="avatar">👒</span><span><strong>Quán Hải Sản</strong><small>Lv. {game.level} <i className="xp-progress"><i style={{width:`${game.xp%100}%`}}/></i></small></span></button>
