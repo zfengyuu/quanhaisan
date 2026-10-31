@@ -1,0 +1,38 @@
+{
+  "seafood": [
+    "assets/pixel/seafood/ca-thu.png",
+    "assets/pixel/seafood/ca-ngu.png",
+    "assets/pixel/seafood/tom.png",
+    "assets/pixel/seafood/muc.png",
+    "assets/pixel/seafood/so.png",
+    "assets/pixel/seafood/cua.png",
+    "assets/pixel/seafood/hau.png"
+  ],
+  "characters": [
+    "assets/pixel/characters/ngu-dan.png",
+    "assets/pixel/characters/co-sau.png",
+    "assets/pixel/characters/khach-xanh.png",
+    "assets/pixel/characters/khach-tim.png",
+    "assets/pixel/characters/khach-vang.png",
+    "assets/pixel/characters/nhan-vien.png"
+  ],
+  "props": [
+    "assets/pixel/props/ban-go.png",
+    "assets/pixel/props/ghe-go.png",
+    "assets/pixel/props/thung-ca.png",
+    "assets/pixel/props/tu-hai-san.png",
+    "assets/pixel/props/bep.png",
+    "assets/pixel/props/can-cau.png",
+    "assets/pixel/props/den-long.png",
+    "assets/pixel/props/cay-canh.png",
+    "assets/pixel/props/thuyen.png",
+    "assets/pixel/props/ruong.png"
+  ],
+  "story": [
+    "assets/pixel/story/chapter-1.png",
+    "assets/pixel/story/chapter-2.png",
+    "assets/pixel/story/chapter-3.png",
+    "assets/pixel/story/chapter-4.png",
+    "assets/pixel/story/chapter-5.png"
+  ]
+}

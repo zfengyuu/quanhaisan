@@ -71,11 +71,31 @@ Push repo lên GitHub, import repo vào Vercel, cấu hình 2 biến `NEXT_PUBLI
 - Trạng thái chờ của NPC hiện là **mô phỏng trên client**, không phải hệ thống đơn hàng đã xác thực trên máy chủ. Tiền xu và kho vẫn do Supabase RPC xác thực nếu đăng nhập. Nâng cấp sang bản production có thể dùng hàng đợi khách và order ở backend.
 - Cốt truyện và mục tiêu trong `src/lib/story.ts`; phần hiển thị ở `src/components/StoryPanel.tsx`; NPC ở `src/game/HarborStage.tsx`.
 
+## Gói asset Pixel Art gốc (mới)
+
+Trong `public/assets/pixel/` có **30 hình PNG** tạo riêng cho Quán Hải Sản: 7 icon hải sản; 6 sprite sheet nhân vật 4 hướng × 4 frame (mỗi cell 64 × 96 ở tỷ lệ xuất x2); 10 vật dụng tương tác; 5 tranh cốt truyện; 2 ảnh chân dung. Mỗi asset có nền trong suốt nếu phù hợp và có thể dùng độc lập trong game. File catalog là `public/assets/pixel/catalog.json`.
+
+- NPC Phaser trong quán dùng sprite sheet và frame chuyển động thay cho nhân vật khối hoặc emoji.
+- Kho, danh sách nhập/bán hải sản, mini-game câu cá và các chương truyện dùng asset PNG riêng.
+- `public/assets/audio/` gồm 6 âm thanh WAV tự tổng hợp (click, coin, catch, splash, upgrade, chime). Âm thanh thao tác chỉ chạy sau hành động người chơi; có thể tắt bằng `localStorage.setItem('qhs-sound-off','1')`.
+- Truy cập **`/preview/`** bằng server static hoặc `preview/index.html` để xem thư viện sprite; mã nguồn tạo asset ở `tools/generate_assets.py` và `tools/generate_audio.py`.
+- Asset độc lập được sản xuất theo phong cách đã chọn, **không phải bản sao tài nguyên game Ốc Đêm**.
+
+### Xem ngay mà không cần npm
+
+```bash
+python3 -m http.server 8080
+# http://localhost:8080/demo/
+# http://localhost:8080/preview/
+```
+
+Nếu chưa tạo Supabase, game Next.js chơi local với tiền ảo và tự lưu trên máy. `donate-qr.png` hiện chưa có vì cần ảnh QR ngân hàng của bạn; popup có placeholder rõ ràng, không có VietQR API hay thanh toán trong game.
+
 ## Phạm vi MVP
 
 Đã có: giao diện theo concept, bản đồ tương tác Phaser và NPC di chuyển ngẫu nhiên, 5 chương truyện, hướng dẫn đầu game, mini-game câu cá canh lực, kho 7 loại hải sản, nhập hàng, bán bằng xu ảo, nâng cấp, mở vùng biển, demo autosave, Supabase Auth/RPC SQL, QR donate popup, PWA.
 
-Chưa có: multiplayer, sprite-sheet nhân vật cao cấp, pathfinding tránh vật cản, cơ chế câu cá nâng cao, phần thưởng donate, thanh toán, tự động deploy công khai. Background là một ảnh concept art đã crop thành bản đồ; để đạt chất lượng production cần chia thành tile/sprite, bổ sung animation và âm thanh riêng.
+Chưa có: multiplayer, sprite-sheet chất lượng artist production, pathfinding tránh vật cản, cơ chế câu cá nâng cao, phần thưởng donate, thanh toán, tự động deploy công khai. Background là một ảnh concept art đã crop thành bản đồ; để đạt chất lượng production cần chia thành tile/sprite, bổ sung animation và âm thanh riêng.
 
 ## Giấy phép
 
@@ -86,3 +106,8 @@ MVP thử nghiệm. Tác phẩm đồ họa dùng concept được tạo riêng 
 Mở `demo/index.html` trong trình duyệt khi giải nén ZIP. Đây là bản preview HTML độc lập với các thao tác cơ bản, dùng cùng đồ họa và logic xu ảo để xem nhanh; PWA + Supabase nằm ở ứng dụng Next.js chính. Nếu trình duyệt chặn ảnh khi mở trực tiếp bằng `file://`, chạy `python3 -m http.server 8080` ở thư mục gốc và mở `http://localhost:8080/demo/`.
 
 Hướng dẫn tạo repo GitHub khi connector thiếu quyền tạo: [`PUBLISH_GITHUB.md`](PUBLISH_GITHUB.md).
+
+
+## Đưa lên GitHub
+
+Công cụ GitHub trong phiên ChatGPT này **không có quyền tạo repository mới**, vì thế chưa có URL GitHub live. Xem `PUBLISH_GITHUB.md` để tạo một repo rỗng bằng giao diện GitHub rồi push toàn bộ source bằng lệnh terminal. Không gửi file HAR đã tải từ Ốc Đêm lên repository (có thể chứa token phiên).

@@ -1,7 +1,7 @@
 /* Offline support: cache the app shell, static assets and visited pages.
    API/Supabase requests are never cached. */
-const VERSION = 'quanhaisan-v2-story-npc';
-const PRECACHE = ['/', '/assets/harbor-map.webp', '/assets/concept-preview.webp', '/icons/icon-192.png', '/icons/icon-512.png', '/manifest.webmanifest'];
+const VERSION = 'quanhaisan-v3-pixel-pack';
+const PRECACHE = ['/', '/assets/harbor-map.webp', '/assets/concept-preview.webp', '/icons/icon-192.png', '/icons/icon-512.png', '/assets/pixel/story/chapter-1.png', '/assets/pixel/seafood/ca-thu.png', '/manifest.webmanifest'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(VERSION).then(cache => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));
 });

@@ -1,27 +1,28 @@
-# Tạo repo GitHub và đẩy code
+# Đưa Quán Hải Sản lên GitHub
 
-Kết nối GitHub trong ChatGPT hiện có quyền thao tác trong repo đã tồn tại, nhưng không cung cấp hành động tạo repo mới. Vì vậy **chưa có repo GitHub được tạo** cho dự án này.
+Repo chưa được tạo tự động vì kết nối GitHub hiện tại không hỗ trợ thao tác tạo repository mới.
 
-## Cách nhanh nhất
-
-1. Mở https://github.com/new, đặt tên `quanhaisan-web`, chọn **Private** hoặc **Public**, tạo repo **rỗng** (không thêm README/.gitignore/license).
-2. Giải nén ZIP, mở terminal trong thư mục `quanhaisan-web`.
-3. Dùng các lệnh dưới đây, thay `YOUR_GITHUB_USER` bằng tên tài khoản của bạn:
+1. Đăng nhập GitHub, mở <https://github.com/new>.
+2. Tạo một repo trống tên **quanhaisan-web**, chọn **Private** hoặc Public tùy bạn. **Đừng** chọn Initialize with README/.gitignore/license vì thư mục đã có Git history.
+3. Giải nén ZIP này, mở Terminal trong thư mục `quanhaisan-web`.
+4. Thực hiện:
 
 ```bash
-git init -b main
-git add .
-git commit -m "feat: Quán Hải Sản PWA MVP"
-git remote add origin https://github.com/YOUR_GITHUB_USER/quanhaisan-web.git
+git remote remove origin 2>/dev/null || true
+git remote add origin https://github.com/YOUR_USERNAME/quanhaisan-web.git
+git branch -M main
 git push -u origin main
 ```
 
-Hoặc nếu có GitHub CLI đã đăng nhập (`gh auth login`):
+Thay `YOUR_USERNAME` bằng tên người dùng GitHub của bạn. GitHub có thể yêu cầu đăng nhập qua credential manager hoặc personal access token. Không gửi token cho bất kỳ ai.
+
+Sau đó clone ở máy khác:
 
 ```bash
-gh repo create quanhaisan-web --private --source=. --remote=origin --push
+git clone https://github.com/YOUR_USERNAME/quanhaisan-web.git
+cd quanhaisan-web
+npm install
+npm run dev
 ```
 
-Cách thứ hai tự tạo repo + push nếu thư mục đã là git repository và có commit. Hãy đổi `--private` thành `--public` nếu muốn công khai source.
-
-**Không commit** `.env.local`, token Supabase dạng secret hoặc thông tin ngân hàng. Chỉ ảnh QR mà bạn chủ động muốn công khai mới được đặt vào `public/donate-qr.png`.
+Mở http://localhost:3000. Nếu cần chạy ngay trước khi cài Node: `python3 -m http.server 8080`, mở http://localhost:8080/demo/.

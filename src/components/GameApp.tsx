@@ -7,6 +7,7 @@ import StoryPanel from '@/components/StoryPanel';
 import { currentChapter } from '@/lib/story';
 import { BookOpen } from 'lucide-react';
 import GameLoading from '@/components/GameLoading';
+import {playSound} from '@/lib/audio';
 import { ACTION_PLACEHOLDER } from '@/lib/ui';
 import { FISH, INITIAL_STATE, applyLocalAction, AREA_COST, formatXu, parseGameState, totalFish, UPGRADE_COST, type Action, type FishId, type GameState } from '@/lib/economy';
 import { getSupabase, hasSupabaseConfig } from '@/lib/supabase';
@@ -41,7 +42,7 @@ function Modal({title,children,onClose,tag}:{title:string;children:React.ReactNo
 function StockCard({id,qty,onClick}:{id:FishId;qty:number;onClick:()=>void}){
   const f=FISH.find(f=>f.id===id)!;
   return <button className="stock-card" onClick={onClick} title={`${f.name}: ${qty} con`}>
-    <span className="stock-count">{qty}</span><span className="stock-emoji">{f.icon}</span><strong>{f.name}</strong>
+    <span className="stock-count">{qty}</span><img className="pixel-item-icon" src={`/assets/pixel/seafood/${id}.png`} alt=""/><strong>{f.name}</strong>
   </button>;
 }
 function DonateContent(){
@@ -78,7 +79,7 @@ function FishingContent({onCatch,working}:{onCatch:()=>Promise<boolean>;working:
     setWon(success);setMessage(success?'🎉 Bắt được cá! Cá đã vào kho hải sản.':'Chưa thể câu, kiểm tra thông báo phía trên.');
   };
   return <div className="fishing-content">
-    <div className="fishing-water"><span className="water-wave">〰️ 〰️ 〰️</span><span className="fisher">🎣</span><span className="floating-fish">🐟</span><span className="water-wave">〰️ 〰️ 〰️</span></div>
+    <div className="fishing-water"><span className="water-wave">〰️ 〰️ 〰️</span><img className="fisher-pixel" src="/assets/pixel/props/can-cau.png" alt="Cần câu"/><img className="floating-fish" src="/assets/pixel/seafood/ca-thu.png" alt="Cá thu đang bơi"/><span className="water-wave">〰️ 〰️ 〰️</span></div>
     <div className="catch-meter"><div className="catch-good"/><div className="catch-marker" style={{left:`${position}%`}}/></div>
     <p className={won?'catch-won':'catch-message'}>{message}</p>
     <button className="gold-button full" disabled={working} onClick={hook}>{working?'Đang kéo cá...':'🎣 Giật cần!'}</button>
@@ -150,6 +151,7 @@ export default function GameApp(){
       }
       const messages:Record<Action,string>={fish:'🎣 Cá mới đã vào kho!',buy:'📦 Nhập hàng thành công!',sell:'🪙 Khách đã mua cá!',upgrade:'🏡 Quán đã được nâng cấp!',unlock:'🗺️ Mở khóa vùng biển mới!'};
       notify(messages[action]);
+      playSound(action==='fish'?'catch':action==='sell'?'coin':action==='upgrade'||action==='unlock'?'upgrade':'click');
       if(action==='sell')setServedSignal(v=>v+1);
       setTutorial(step=>action==='fish'&&step==='fish'?'market':action==='buy'&&step==='market'?'sell':action==='sell'&&step==='sell'?'story':step);
       return true;
@@ -202,9 +204,9 @@ export default function GameApp(){
   </div>
   {panel==='story'&&<Modal title="Chuyện Bến Nhỏ" tag={`CHƯƠNG ${currentChapter(game)} · NHẬT KÝ LÀNG CHÀI`} onClose={()=>setPanel(null)}><StoryPanel game={game}/></Modal>}
   {panel==='fish'&&<Modal title="Câu cá ngoài khơi" tag={`VÙNG BIỂN ${game.area}`} onClose={()=>setPanel(null)}><FishingContent working={busy} onCatch={()=>transact('fish')}/></Modal>}
-  {panel==='market'&&<Modal title="Chợ Hải Sản" tag="NHẬP HÀNG BẰNG XU" onClose={()=>setPanel(null)}><p className="modal-intro">Nhập hải sản từ chợ ven biển. Giá nhập cao hơn giá bán để khuyến khích tự câu cá.</p><div className="trade-list">{FISH.map(f=><div className="trade-row" key={f.id}><span className="trade-emoji">{f.icon}</span><div className="trade-name"><strong>{f.name}</strong><small>{f.rarity} · Kho: {game.inventory[f.id]}</small></div><button disabled={busy||game.coins<f.buy} onClick={()=>void transact('buy',f.id)}>Nhập {f.buy} xu</button></div>)}</div></Modal>}
-  {panel==='sell'&&<Modal title="Bán hải sản" tag="KHÁCH HÀNG ĐANG ĐỢI" onClose={()=>setPanel(null)}><p className="modal-intro">Chọn cá trong kho để bán cho khách. Mỗi lần bán nhận xu và kinh nghiệm.</p><div className="selected-fish"><span>{chosenFish.icon}</span><strong>{chosenFish.name}</strong><small>Giá bán: {chosenFish.sell+game.upgrades*5} xu</small></div><div className="trade-list">{FISH.map(f=><div className={`trade-row ${chosen===f.id?'selected':''}`} key={f.id}><span className="trade-emoji">{f.icon}</span><div className="trade-name"><strong>{f.name}</strong><small>Trong kho: {game.inventory[f.id]}</small></div><button disabled={busy||!game.inventory[f.id]} onClick={()=>{setChosen(f.id);void transact('sell',f.id)}}>Bán +{f.sell+game.upgrades*5}</button></div>)}</div></Modal>}
-  {panel==='upgrade'&&<Modal title="Nâng cấp quán" tag="XÂY DỰNG CƠ NGƠI" onClose={()=>setPanel(null)}><div className="feature-card"><span>🏡</span><h3>Quán cấp {game.upgrades+1}</h3><p>Mỗi lần nâng cấp giúp mỗi đơn hàng bán được thêm 5 xu.</p><strong>Tăng doanh thu: +{game.upgrades*5} xu / đơn</strong></div><button className="gold-button full" disabled={busy||game.coins<UPGRADE_COST(game.upgrades)} onClick={()=>void transact('upgrade')}>⬆️ Nâng cấp · {formatXu(UPGRADE_COST(game.upgrades))} xu</button></Modal>}
+  {panel==='market'&&<Modal title="Chợ Hải Sản" tag="NHẬP HÀNG BẰNG XU" onClose={()=>setPanel(null)}><p className="modal-intro">Nhập hải sản từ chợ ven biển. Giá nhập cao hơn giá bán để khuyến khích tự câu cá.</p><div className="trade-list">{FISH.map(f=><div className="trade-row" key={f.id}><img className="pixel-trade-icon" src={`/assets/pixel/seafood/${f.id}.png`} alt=""/><div className="trade-name"><strong>{f.name}</strong><small>{f.rarity} · Kho: {game.inventory[f.id]}</small></div><button disabled={busy||game.coins<f.buy} onClick={()=>void transact('buy',f.id)}>Nhập {f.buy} xu</button></div>)}</div></Modal>}
+  {panel==='sell'&&<Modal title="Bán hải sản" tag="KHÁCH HÀNG ĐANG ĐỢI" onClose={()=>setPanel(null)}><p className="modal-intro">Chọn cá trong kho để bán cho khách. Mỗi lần bán nhận xu và kinh nghiệm.</p><div className="selected-fish"><img className="pixel-item-icon" src={`/assets/pixel/seafood/${chosen}.png`} alt=""/><strong>{chosenFish.name}</strong><small>Giá bán: {chosenFish.sell+game.upgrades*5} xu</small></div><div className="trade-list">{FISH.map(f=><div className={`trade-row ${chosen===f.id?'selected':''}`} key={f.id}><img className="pixel-trade-icon" src={`/assets/pixel/seafood/${f.id}.png`} alt=""/><div className="trade-name"><strong>{f.name}</strong><small>Trong kho: {game.inventory[f.id]}</small></div><button disabled={busy||!game.inventory[f.id]} onClick={()=>{setChosen(f.id);void transact('sell',f.id)}}>Bán +{f.sell+game.upgrades*5}</button></div>)}</div></Modal>}
+  {panel==='upgrade'&&<Modal title="Nâng cấp quán" tag="XÂY DỰNG CƠ NGƠI" onClose={()=>setPanel(null)}><div className="feature-card"><img className="feature-pixel" src="/assets/pixel/props/tu-hai-san.png" alt="Tủ hải sản"/><h3>Quán cấp {game.upgrades+1}</h3><p>Mỗi lần nâng cấp giúp mỗi đơn hàng bán được thêm 5 xu.</p><strong>Tăng doanh thu: +{game.upgrades*5} xu / đơn</strong></div><button className="gold-button full" disabled={busy||game.coins<UPGRADE_COST(game.upgrades)} onClick={()=>void transact('upgrade')}>⬆️ Nâng cấp · {formatXu(UPGRADE_COST(game.upgrades))} xu</button></Modal>}
   {panel==='explore'&&<Modal title="Khám phá đại dương" tag="BẢN ĐỒ VÙNG BIỂN" onClose={()=>setPanel(null)}><div className="explore-list">{['Vịnh Bình Minh','Rạn San Hô','Biển Xa'].map((n,i)=><div className={`explore-item ${i+1<=game.area?'unlocked':''}`} key={n}><div className="island-icon">{['🏝️','🪸','⛵'][i]}</div><div><strong>{n}</strong><small>{i+1<=game.area?'Đã mở khóa':'Chưa khám phá'}</small></div><span>{i+1<=game.area?'✓':'🔒'}</span></div>)}</div><button className="gold-button full" disabled={busy||game.area>=3||game.coins<AREA_COST(game.area)} onClick={()=>void transact('unlock')}>{game.area>=3?'Đã khám phá hết':'🗺️ Mở vùng biển mới · '+formatXu(AREA_COST(game.area))+' xu'}</button></Modal>}
   {panel==='donate'&&<Modal title="Ủng hộ tác giả" tag="CẢM ƠN BẠN 💛" onClose={()=>setPanel(null)}><DonateContent/></Modal>}
   {panel==='account'&&<Modal title="Tài khoản người chơi" tag="LƯU TIẾN TRÌNH" onClose={()=>setPanel(null)}><AccountContent user={user} onLogin={login} onLogout={logout} working={busy}/></Modal>}

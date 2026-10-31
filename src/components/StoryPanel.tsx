@@ -19,7 +19,7 @@ export default function StoryPanel({game}:{game:GameState}) {
       <div className="story-meta">CHƯƠNG {c.id} · {c.subtitle.toUpperCase()}</div>
       <h3>{c.title}</h3>
       {tab==='story'?<>
-        <div className="story-illustration" role="img" aria-label="Làng chài Bến Nhỏ với chiếc thuyền và quán hải sản"><img src="/assets/concept-preview.webp" alt="Khung cảnh Bến Nhỏ"/></div>
+        <div className="story-illustration" role="img" aria-label="Làng chài Bến Nhỏ với chiếc thuyền và quán hải sản"><img src={`/assets/pixel/story/chapter-${chapter}.png`} alt="Khung cảnh Bến Nhỏ"/></div>
         <p className="story-speaker">✦ {c.speaker} kể chuyện ✦</p>
         {c.dialogue.map((line,i)=><p key={i} className="story-paragraph">{line}</p>)}
       </>:<>
