@@ -1,0 +1,93 @@
+[
+  {
+    "id": "ngu-choi",
+    "file": "/assets/pixel/characters/ngu-choi.png",
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "directions": [
+      "down",
+      "left",
+      "right",
+      "up"
+    ],
+    "framesPerDirection": 4
+  },
+  {
+    "id": "chu-tam",
+    "file": "/assets/pixel/characters/chu-tam.png",
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "directions": [
+      "down",
+      "left",
+      "right",
+      "up"
+    ],
+    "framesPerDirection": 4
+  },
+  {
+    "id": "co-sau",
+    "file": "/assets/pixel/characters/co-sau.png",
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "directions": [
+      "down",
+      "left",
+      "right",
+      "up"
+    ],
+    "framesPerDirection": 4
+  },
+  {
+    "id": "dau-bep",
+    "file": "/assets/pixel/characters/dau-bep.png",
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "directions": [
+      "down",
+      "left",
+      "right",
+      "up"
+    ],
+    "framesPerDirection": 4
+  },
+  {
+    "id": "phuc-vu",
+    "file": "/assets/pixel/characters/phuc-vu.png",
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "directions": [
+      "down",
+      "left",
+      "right",
+      "up"
+    ],
+    "framesPerDirection": 4
+  },
+  {
+    "id": "khach-nam",
+    "file": "/assets/pixel/characters/khach-nam.png",
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "directions": [
+      "down",
+      "left",
+      "right",
+      "up"
+    ],
+    "framesPerDirection": 4
+  },
+  {
+    "id": "khach-nu",
+    "file": "/assets/pixel/characters/khach-nu.png",
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "directions": [
+      "down",
+      "left",
+      "right",
+      "up"
+    ],
+    "framesPerDirection": 4
+  }
+]

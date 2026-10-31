@@ -5,7 +5,7 @@ const resources = [
   '/assets/concept-preview.webp',
   '/assets/harbor-map.webp',
   '/icons/icon-192.png',
-  '/assets/pixel/characters/ngu-dan.png',
+  '/assets/pixel/characters/ngu-choi.png',
   '/assets/pixel/story/chapter-1.png',
   '/assets/pixel/seafood/ca-thu.png',
   '/assets/pixel/seafood/tom.png',

@@ -12,13 +12,14 @@ export default function HarborStage({onTarget,onCustomerCount,servedSignal=0}:{o
   void import('phaser').then(({default:Phaser})=>{
    if(disposed||!holder.current)return;
    type Guest={sprite:Phaser.GameObjects.Sprite; bubble:Phaser.GameObjects.Text;state:'entering'|'waiting'|'leaving'; timeout?:Phaser.Time.TimerEvent};
-   const variants=['ngu-dan','co-sau','khach-xanh','khach-tim','khach-vang','nhan-vien'];
+   const variants=['khach-nam','khach-nu','khach-xanh','khach-tim','khach-vang'];
+   const namedCharacters=['ngu-choi','chu-tam','co-sau','dau-bep','phuc-vu'];
    class Harbor extends Phaser.Scene{
     private guests:Guest[]=[];private served=()=>this.serveWaiting();
     constructor(){super('Harbor')}
     preload(){
      this.load.image('map','/assets/harbor-map.webp');
-     for(const v of variants)this.load.spritesheet(v,`/assets/pixel/characters/${v}.png`,{frameWidth:64,frameHeight:96});
+     for(const v of [...variants,...namedCharacters])this.load.spritesheet(v,`/assets/pixel/characters/${v}.png`,{frameWidth:64,frameHeight:96});
      this.load.image('plant','/assets/pixel/props/cay-canh.png');
     }
     private publish(){countRef.current?.(this.guests.filter(c=>c.state==='waiting').length)}
@@ -51,7 +52,7 @@ export default function HarborStage({onTarget,onCustomerCount,servedSignal=0}:{o
     }
     create(){
      this.add.image(0,0,'map').setOrigin(0).setDisplaySize(941,1088);
-     for(const v of variants){
+     for(const v of [...variants,...namedCharacters]){
       this.anims.create({key:`${v}-left`,frames:this.anims.generateFrameNumbers(v,{start:4,end:7}),frameRate:7,repeat:-1});
       this.anims.create({key:`${v}-right`,frames:this.anims.generateFrameNumbers(v,{start:8,end:11}),frameRate:7,repeat:-1});
      }
@@ -63,6 +64,13 @@ export default function HarborStage({onTarget,onCustomerCount,servedSignal=0}:{o
       const dot=this.add.circle(x+w-35,y+40,23,0x241536,.9).setStrokeStyle(3,0xffd477).setDepth(10000);
       const icon=this.add.text(x+w-50,y+26,label,{fontSize:'29px'}).setDepth(10001);
       this.tweens.add({targets:[dot,icon],y:'-=6',duration:1150,yoyo:true,repeat:-1});
+     }
+     // Characters from the approved cast: fixed named residents and service staff.
+     for(const [id,x,y,label] of ([['ngu-choi',390,765,'Bạn'],['chu-tam',90,525,'Chú Tám'],['co-sau',165,915,'Cô Sáu'],['dau-bep',458,1050,'Bếp Lành'],['phuc-vu',765,620,'Mai']] as const)){
+      const person=this.add.sprite(x,y,id,0).setOrigin(.5,1).setDisplaySize(64,96).setDepth(y);
+      person.setInteractive({useHandCursor:true});
+      const tag=this.add.text(x,y-103,label,{fontSize:'15px',fontFamily:'sans-serif',backgroundColor:'#321e3ed9',padding:{x:7,y:3},color:'#ffebae'}).setOrigin(.5).setDepth(1400);
+      person.on('pointerdown',()=>targetRef.current(id==='chu-tam'?'fish':id==='co-sau'?'market':'sell'));
      }
      this.game.events.on('qhs:serve',this.served);
      this.events.once(Phaser.Scenes.Events.SHUTDOWN,()=>{this.game.events.off('qhs:serve',this.served);countRef.current?.(0)});

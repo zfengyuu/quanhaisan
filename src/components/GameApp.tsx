@@ -177,7 +177,7 @@ export default function GameApp(){
   {!assetsReady&&<GameLoading onReady={onAssetsReady}/>}
   <div className="game-shell">
     <header className="game-topbar">
-      <button className="profile" onClick={()=>setPanel('account')} aria-label="Tài khoản"><span className="avatar">👒</span><span><strong>Quán Hải Sản</strong><small>Lv. {game.level} <i className="xp-progress"><i style={{width:`${game.xp%100}%`}}/></i></small></span></button>
+      <button className="profile" onClick={()=>setPanel('account')} aria-label="Tài khoản"><span className="avatar"><img src="/assets/pixel/portraits/ngu-choi.webp" alt="Nhân vật chính" className="avatar-pixel"/></span><span><strong>Quán Hải Sản</strong><small>Lv. {game.level} <i className="xp-progress"><i style={{width:`${game.xp%100}%`}}/></i></small></span></button>
       <div className="currency"><span>🪙</span><b>{formatXu(game.coins)}</b></div>
       <div className="currency gems"><span>💎</span><b>{game.gems}</b></div>
       <button className="top-icon" onClick={()=>setPanel('help')} aria-label="Cài đặt và hướng dẫn"><Settings size={22}/></button>
