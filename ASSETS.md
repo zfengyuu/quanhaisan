@@ -34,3 +34,15 @@ In Phaser, load spritesheets with `{frameWidth:64, frameHeight:96}`. Row 0 → f
 - No text baked into HUD sprites
 - QR image is user-provided and not generated or stored in source until added
 - Map concept is still a single painted scene: production collision/tile extraction remains future work
+
+### Dàn nhân vật được duyệt – bản cập nhật
+
+- `/assets/pixel/characters/ngu-choi.png` — Nhân vật chính, áo kem, quần xanh, túi vải
+- `/assets/pixel/characters/chu-tam.png` — Chú Tám, nón rơm, râu bạc
+- `/assets/pixel/characters/co-sau.png` — Cô Sáu, khăn tím, tạp dề xanh
+- `/assets/pixel/characters/dau-bep.png` — Đầu bếp Lành, khăn trắng, tạp dề xanh
+- `/assets/pixel/characters/phuc-vu.png` — Phục vụ Mai, tạp dề đỏ, nơ tóc
+- `/assets/pixel/characters/khach-nam.png` — Khách nam, áo xanh
+- `/assets/pixel/characters/khach-nu.png` — Khách nữ, áo hồng
+
+Mỗi sheet `256×384`, chia `4×4`, frame `64×96`. Chân dung ở `assets/pixel/portraits/*.webp`. Không sao chép asset từ Ốc Đêm.

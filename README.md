@@ -111,4 +111,9 @@ Hướng dẫn tạo repo GitHub khi connector thiếu quyền tạo: [`PUBLISH_
 ## Đưa lên GitHub
 
 Công cụ GitHub trong phiên ChatGPT này **không có quyền tạo repository mới**, vì thế chưa có URL GitHub live. Xem `PUBLISH_GITHUB.md` để tạo một repo rỗng bằng giao diện GitHub rồi push toàn bộ source bằng lệnh terminal. Không gửi file HAR đã tải từ Ốc Đêm lên repository (có thể chứa token phiên).
-# quanhaisan
+
+## Bộ nhân vật đã chốt (01/11/2026)
+
+Bản này có 7 nhân vật sprite 4 hướng, 4 bước/chu kỳ với cell 64×96 px (pixel logic 32×48): **Bạn, Chú Tám, Cô Sáu, Đầu bếp Lành, Phục vụ Mai, Khách nam, Khách nữ**. Ngoài sprite chơi được còn có 6 ảnh chân dung cắt từ bảng concept do dự án tự tạo và đã duyệt. Metadata ở `public/assets/pixel/character-manifest.json`.
+
+Để sinh lại sprite từ code (không cần model tạo ảnh): `python3 tools/generate_character_set.py` (yêu cầu Pillow). Các chân dung WebP được giữ sẵn, không bị thay đổi khi sinh sprite. Bản vẽ concept và NPC sprites không hoàn toàn giống từng nét: portrait dùng trong giao diện truyện, còn sprite dùng để animate 4 hướng trên map.
