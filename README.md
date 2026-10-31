@@ -111,3 +111,4 @@ Hướng dẫn tạo repo GitHub khi connector thiếu quyền tạo: [`PUBLISH_
 ## Đưa lên GitHub
 
 Công cụ GitHub trong phiên ChatGPT này **không có quyền tạo repository mới**, vì thế chưa có URL GitHub live. Xem `PUBLISH_GITHUB.md` để tạo một repo rỗng bằng giao diện GitHub rồi push toàn bộ source bằng lệnh terminal. Không gửi file HAR đã tải từ Ốc Đêm lên repository (có thể chứa token phiên).
+# quanhaisan
