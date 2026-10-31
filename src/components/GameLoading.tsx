@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 const resources = [
   '/assets/concept-preview.webp',
-  '/assets/harbor-map.webp',
+  '/assets/harbor-courtyard.webp?v=4',
   '/icons/icon-192.png',
   '/assets/pixel/characters/ngu-choi.png',
   '/assets/pixel/story/chapter-1.png',

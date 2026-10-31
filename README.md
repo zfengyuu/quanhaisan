@@ -117,3 +117,14 @@ Công cụ GitHub trong phiên ChatGPT này **không có quyền tạo repositor
 Bản này có 7 nhân vật sprite 4 hướng, 4 bước/chu kỳ với cell 64×96 px (pixel logic 32×48): **Bạn, Chú Tám, Cô Sáu, Đầu bếp Lành, Phục vụ Mai, Khách nam, Khách nữ**. Ngoài sprite chơi được còn có 6 ảnh chân dung cắt từ bảng concept do dự án tự tạo và đã duyệt. Metadata ở `public/assets/pixel/character-manifest.json`.
 
 Để sinh lại sprite từ code (không cần model tạo ảnh): `python3 tools/generate_character_set.py` (yêu cầu Pillow). Các chân dung WebP được giữ sẵn, không bị thay đổi khi sinh sprite. Bản vẽ concept và NPC sprites không hoàn toàn giống từng nét: portrait dùng trong giao diện truyện, còn sprite dùng để animate 4 hướng trên map.
+
+
+## Bản cập nhật sân quán động (v4)
+
+- Phần **kiến trúc/cửa hàng** được giữ làm nền tĩnh, nhưng **khu sân quán đã được làm trống** (`public/assets/harbor-courtyard.webp`).
+- Bàn và ghế được tạo bằng sprite riêng từ `public/assets/pixel/props`, không được vẽ chết vào nền. Bắt đầu với 2 bàn; bấm dấu `+` hoặc nút **Mở rộng** để nâng cấp, mỗi cấp mở thêm 1 bàn đến tối đa 5 bàn. Chi phí dùng xu ảo và giao dịch `upgrade` hiện có.
+- Khách đi theo lối vào, tìm bàn trống, chờ, cử động nhẹ (idle) và rời quán; phục vụ thành công khiến khách rời đi vui vẻ.
+- Đã sửa sprite sheet 4×4 (trước đó các frame bị chồng vào nhau), cập nhật bản cache PWA `v4` để máy không giữ tài nguyên cũ.
+- Phần bến cảng, quầy và người có sẵn trong **phần ảnh kiến trúc phía trên** vẫn là tranh tĩnh; để biến chúng thành đối tượng thực sự cần vẽ lại từng layer ở phiên bản sau.
+
+Tài nguyên nhân vật thiết kế riêng có thể tái tạo bằng `python tools/repair_characters_and_courtyard.py` (cần Pillow, numpy, OpenCV). Bản đã xuất sẵn trong `public/assets`, **không cần chạy script** để chơi.
