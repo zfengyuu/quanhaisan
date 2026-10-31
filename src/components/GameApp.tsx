@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Anchor, ArrowLeft, ArrowUpCircle, Check, CircleHelp, Coffee, Fish, Gift, Heart, Info, LogIn, Map, PackagePlus, Sailboat, Settings, ShoppingBasket, ShoppingCart, Sparkles, Store, Trophy, UserRound, Wallet, X } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import HarborStage, {type HarborTarget} from '@/game/HarborStage';
+import GameLoading from '@/components/GameLoading';
 import { ACTION_PLACEHOLDER } from '@/lib/ui';
 import { FISH, INITIAL_STATE, applyLocalAction, AREA_COST, formatXu, parseGameState, totalFish, UPGRADE_COST, type Action, type FishId, type GameState } from '@/lib/economy';
 import { getSupabase, hasSupabaseConfig } from '@/lib/supabase';
@@ -85,6 +86,7 @@ export default function GameApp(){
   const [busy,setBusy]=useState(false);
   const [toast,setToast]=useState('');
   const [ready,setReady]=useState(false);
+  const [assetsReady,setAssetsReady]=useState(false);
   const [installPrompt,setInstallPrompt]=useState<Event|null>(null);
   const [chosen,setChosen]=useState<FishId>('ca-thu');
   const notificationTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
@@ -147,7 +149,9 @@ export default function GameApp(){
   };
   const openTarget=(t:HarborTarget)=>setPanel(t);
   const chosenFish=FISH.find(f=>f.id===chosen)!;
-  return <main className="site-bg"><div className="game-shell">
+  return <main className="site-bg">
+  {!assetsReady&&<GameLoading onReady={()=>setAssetsReady(true)}/>}
+  <div className="game-shell">
     <header className="game-topbar">
       <button className="profile" onClick={()=>setPanel('account')} aria-label="Tài khoản"><span className="avatar">👒</span><span><strong>Quán Hải Sản</strong><small>Lv. {game.level} <i className="xp-progress"><i style={{width:`${game.xp%100}%`}}/></i></small></span></button>
       <div className="currency"><span>🪙</span><b>{formatXu(game.coins)}</b></div>
