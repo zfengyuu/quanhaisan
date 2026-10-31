@@ -3,13 +3,25 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Anchor, ArrowLeft, ArrowUpCircle, Check, CircleHelp, Coffee, Fish, Gift, Heart, Info, LogIn, Map, PackagePlus, Sailboat, Settings, ShoppingBasket, ShoppingCart, Sparkles, Store, Trophy, UserRound, Wallet, X } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import HarborStage, {type HarborTarget} from '@/game/HarborStage';
+import StoryPanel from '@/components/StoryPanel';
+import { currentChapter } from '@/lib/story';
+import { BookOpen } from 'lucide-react';
 import GameLoading from '@/components/GameLoading';
 import { ACTION_PLACEHOLDER } from '@/lib/ui';
 import { FISH, INITIAL_STATE, applyLocalAction, AREA_COST, formatXu, parseGameState, totalFish, UPGRADE_COST, type Action, type FishId, type GameState } from '@/lib/economy';
 import { getSupabase, hasSupabaseConfig } from '@/lib/supabase';
 
-type Panel = 'fish'|'market'|'sell'|'upgrade'|'explore'|'donate'|'account'|'help'|null;
+type Panel = 'fish'|'market'|'sell'|'upgrade'|'explore'|'donate'|'account'|'help'|'story'|null;
 const LOCAL_KEY = 'quanhaisan-demo-v1';
+const TUTORIAL_KEY='quanhaisan-tutorial-v1';
+type TutorialStep = 'intro'|'fish'|'market'|'sell'|'story'|'done';
+const GUIDE:Record<Exclude<TutorialStep,'done'>,{title:string;body:string;button:string;panel:Panel}>={
+  intro:{title:'👋 Chào mừng đến Bến Nhỏ!',body:'Ông ngoại để lại một quán hải sản và chiếc cần câu cũ. Chúng mình cùng học cách gây dựng quán nhé!',button:'Bắt đầu cuộc phiêu lưu',panel:null},
+  fish:{title:'🎣 Bước 1 · Câu con cá đầu tiên',body:'Mở mục Câu cá, canh thanh chỉ thị vào vùng xanh rồi giật cần thành công.',button:'Đi câu cá',panel:'fish'},
+  market:{title:'🧺 Bước 2 · Nhập hàng',body:'Mở chợ hải sản, nhập thử một món bằng xu ảo. Bạn có thể tự câu hoặc nhập từ chợ.',button:'Đến chợ cá',panel:'market'},
+  sell:{title:'🍽️ Bước 3 · Phục vụ khách',body:'Khách đang đi vào quán, chọn bàn và gọi món. Bán một con cá trong kho để phục vụ khách.',button:'Phục vụ khách',panel:'sell'},
+  story:{title:'📖 Bước 4 · Mở nhật ký',body:'Mỗi chương truyện có mục tiêu riêng. Hoàn thành để khám phá câu chuyện của Bến Nhỏ!',button:'Đọc Chuyện Bến Nhỏ',panel:'story'},
+};
 const tabs: {id:Exclude<Panel,null>;icon:typeof Fish;label:string;sub:string}[] = [
   {id:'fish',icon:Fish,label:'Câu cá',sub:'Ra khơi bắt cá'},
   {id:'market',icon:ShoppingBasket,label:'Nhập hàng',sub:'Chợ ven biển'},
@@ -90,6 +102,9 @@ export default function GameApp(){
   const onAssetsReady=useCallback(()=>setAssetsReady(true),[]);
   const [installPrompt,setInstallPrompt]=useState<Event|null>(null);
   const [chosen,setChosen]=useState<FishId>('ca-thu');
+  const [tutorial,setTutorial]=useState<TutorialStep>('done');
+  const [customerCount,setCustomerCount]=useState(0);
+  const [servedSignal,setServedSignal]=useState(0);
   const notificationTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
   const notify=useCallback((msg:string)=>{setToast(msg);clearTimeout(notificationTimer.current);notificationTimer.current=setTimeout(()=>setToast(''),3400)},[]);
   const fetchCloud=useCallback(async()=>{
@@ -101,6 +116,7 @@ export default function GameApp(){
   useEffect(()=>{
     try{const saved=localStorage.getItem(LOCAL_KEY);if(saved)setGame(parseGameState(JSON.parse(saved)))}catch{ /* corrupt save - start fresh */ }
     setReady(true);
+    try{if(localStorage.getItem(TUTORIAL_KEY)!=='done')setTutorial('intro')}catch{ /* blocked storage */ }
     const db=getSupabase();
     if(db){
       void db.auth.getUser().then(({data})=>{setUser(data.user);if(data.user)void fetchCloud().catch(e=>notify(`Supabase: ${e.message}`))});
@@ -133,7 +149,10 @@ export default function GameApp(){
         setGame(next);
       }
       const messages:Record<Action,string>={fish:'🎣 Cá mới đã vào kho!',buy:'📦 Nhập hàng thành công!',sell:'🪙 Khách đã mua cá!',upgrade:'🏡 Quán đã được nâng cấp!',unlock:'🗺️ Mở khóa vùng biển mới!'};
-      notify(messages[action]);return true;
+      notify(messages[action]);
+      if(action==='sell')setServedSignal(v=>v+1);
+      setTutorial(step=>action==='fish'&&step==='fish'?'market':action==='buy'&&step==='market'?'sell':action==='sell'&&step==='sell'?'story':step);
+      return true;
     }catch(e){notify(e instanceof Error?e.message:'Giao dịch chưa thành công');return false}
     finally{setBusy(false)}
   },[busy,game,user,notify]);
@@ -148,6 +167,8 @@ export default function GameApp(){
     if(e){await e.prompt();setInstallPrompt(null)}
     else notify('Trên điện thoại: chọn “Thêm vào màn hình chính” trong menu trình duyệt.');
   };
+  const finishGuide=()=>{setTutorial('done');try{localStorage.setItem(TUTORIAL_KEY,'done')}catch{}};
+  const guideAction=()=>{if(tutorial==='done')return;if(tutorial==='intro'){setTutorial('fish');return;}if(tutorial==='story'){setPanel('story');finishGuide();return;}setPanel(GUIDE[tutorial].panel)};
   const openTarget=(t:HarborTarget)=>setPanel(t);
   const chosenFish=FISH.find(f=>f.id===chosen)!;
   return <main className="site-bg">
@@ -160,10 +181,12 @@ export default function GameApp(){
       <button className="top-icon" onClick={()=>setPanel('help')} aria-label="Cài đặt và hướng dẫn"><Settings size={22}/></button>
     </header>
     <div className="world-box">
-      <HarborStage onTarget={openTarget}/>
+      <HarborStage onTarget={openTarget} onCustomerCount={setCustomerCount} servedSignal={servedSignal}/>
       <div className="scene-tip"><Anchor size={14}/> Chạm vào 🎣, 🧺, 🪙 để chơi</div>
       <div className="world-heading"><span className="tiny-tag">BẾN CẢNG BÌNH MINH</span><h1>Quán Hải Sản</h1><p>🐟 Tươi ngon từ biển cả</p></div>
       <div className="menu-board"><strong>📜 THỰC ĐƠN</strong>{menu.map(m=><div key={m.name}><span>{m.emoji} {m.name}</span><b>{m.price}k</b></div>)}</div>
+      <button className="story-float" onClick={()=>setPanel('story')}><BookOpen size={14}/> Chuyện Bến Nhỏ · {currentChapter(game)}/5</button>
+      {customerCount>0&&<button className="customer-alert" onClick={()=>setPanel('sell')}>🍽️ {customerCount} khách đang gọi món</button>}
       <button className="donate-float" onClick={()=>setPanel('donate')}><Heart size={17} fill="currentColor"/> Donate</button>
     </div>
     <section className="stock-section">
@@ -177,6 +200,7 @@ export default function GameApp(){
     {installPrompt&&<button className="install-pill" onClick={()=>void install()}>📲 Cài ứng dụng</button>}
     {toast&&<div className="toast" role="status">{toast}</div>}
   </div>
+  {panel==='story'&&<Modal title="Chuyện Bến Nhỏ" tag={`CHƯƠNG ${currentChapter(game)} · NHẬT KÝ LÀNG CHÀI`} onClose={()=>setPanel(null)}><StoryPanel game={game}/></Modal>}
   {panel==='fish'&&<Modal title="Câu cá ngoài khơi" tag={`VÙNG BIỂN ${game.area}`} onClose={()=>setPanel(null)}><FishingContent working={busy} onCatch={()=>transact('fish')}/></Modal>}
   {panel==='market'&&<Modal title="Chợ Hải Sản" tag="NHẬP HÀNG BẰNG XU" onClose={()=>setPanel(null)}><p className="modal-intro">Nhập hải sản từ chợ ven biển. Giá nhập cao hơn giá bán để khuyến khích tự câu cá.</p><div className="trade-list">{FISH.map(f=><div className="trade-row" key={f.id}><span className="trade-emoji">{f.icon}</span><div className="trade-name"><strong>{f.name}</strong><small>{f.rarity} · Kho: {game.inventory[f.id]}</small></div><button disabled={busy||game.coins<f.buy} onClick={()=>void transact('buy',f.id)}>Nhập {f.buy} xu</button></div>)}</div></Modal>}
   {panel==='sell'&&<Modal title="Bán hải sản" tag="KHÁCH HÀNG ĐANG ĐỢI" onClose={()=>setPanel(null)}><p className="modal-intro">Chọn cá trong kho để bán cho khách. Mỗi lần bán nhận xu và kinh nghiệm.</p><div className="selected-fish"><span>{chosenFish.icon}</span><strong>{chosenFish.name}</strong><small>Giá bán: {chosenFish.sell+game.upgrades*5} xu</small></div><div className="trade-list">{FISH.map(f=><div className={`trade-row ${chosen===f.id?'selected':''}`} key={f.id}><span className="trade-emoji">{f.icon}</span><div className="trade-name"><strong>{f.name}</strong><small>Trong kho: {game.inventory[f.id]}</small></div><button disabled={busy||!game.inventory[f.id]} onClick={()=>{setChosen(f.id);void transact('sell',f.id)}}>Bán +{f.sell+game.upgrades*5}</button></div>)}</div></Modal>}
@@ -184,6 +208,7 @@ export default function GameApp(){
   {panel==='explore'&&<Modal title="Khám phá đại dương" tag="BẢN ĐỒ VÙNG BIỂN" onClose={()=>setPanel(null)}><div className="explore-list">{['Vịnh Bình Minh','Rạn San Hô','Biển Xa'].map((n,i)=><div className={`explore-item ${i+1<=game.area?'unlocked':''}`} key={n}><div className="island-icon">{['🏝️','🪸','⛵'][i]}</div><div><strong>{n}</strong><small>{i+1<=game.area?'Đã mở khóa':'Chưa khám phá'}</small></div><span>{i+1<=game.area?'✓':'🔒'}</span></div>)}</div><button className="gold-button full" disabled={busy||game.area>=3||game.coins<AREA_COST(game.area)} onClick={()=>void transact('unlock')}>{game.area>=3?'Đã khám phá hết':'🗺️ Mở vùng biển mới · '+formatXu(AREA_COST(game.area))+' xu'}</button></Modal>}
   {panel==='donate'&&<Modal title="Ủng hộ tác giả" tag="CẢM ƠN BẠN 💛" onClose={()=>setPanel(null)}><DonateContent/></Modal>}
   {panel==='account'&&<Modal title="Tài khoản người chơi" tag="LƯU TIẾN TRÌNH" onClose={()=>setPanel(null)}><AccountContent user={user} onLogin={login} onLogout={logout} working={busy}/></Modal>}
-  {panel==='help'&&<Modal title="Hướng dẫn & Cài đặt" onClose={()=>setPanel(null)}><div className="help-content"><CircleHelp size={32}/><p>🎣 <strong>Câu cá:</strong> canh lực, giật cần để nhận cá vào kho.</p><p>🧺 <strong>Nhập hàng:</strong> dùng xu ảo để mua hải sản.</p><p>🪙 <strong>Bán cá:</strong> bán cá trong kho để kiếm xu và XP.</p><p>🏡 <strong>Nâng cấp:</strong> mở rộng quán để tăng doanh thu.</p><p>❤️ <strong>Donate:</strong> mã QR ngân hàng riêng của tác giả, độc lập với game.</p><button className="secondary-button full" onClick={()=>void install()}>📲 Cài đặt game PWA</button><button className="secondary-button full" onClick={()=>setPanel('account')}>👤 Tài khoản / lưu game</button><p className="notice-line">{ACTION_PLACEHOLDER}</p></div></Modal>}
+  {panel==='help'&&<Modal title="Hướng dẫn & Cài đặt" onClose={()=>setPanel(null)}><div className="help-content"><CircleHelp size={32}/><p>🎣 <strong>Câu cá:</strong> canh lực, giật cần để nhận cá vào kho.</p><p>🧺 <strong>Nhập hàng:</strong> dùng xu ảo để mua hải sản.</p><p>🪙 <strong>Bán cá:</strong> bán cá trong kho để kiếm xu và XP.</p><p>🏡 <strong>Nâng cấp:</strong> mở rộng quán để tăng doanh thu.</p><p>❤️ <strong>Donate:</strong> mã QR ngân hàng riêng của tác giả, độc lập với game.</p><button className="secondary-button full" onClick={()=>void install()}>📲 Cài đặt game PWA</button><button className="secondary-button full" onClick={()=>setPanel('account')}>👤 Tài khoản / lưu game</button><button className="secondary-button full" onClick={()=>{setPanel(null);setTutorial('intro');localStorage.removeItem(TUTORIAL_KEY)}}>✨ Xem lại hướng dẫn đầu game</button><button className="secondary-button full" onClick={()=>setPanel('story')}>📖 Chuyện Bến Nhỏ</button><p className="notice-line">{ACTION_PLACEHOLDER}</p></div></Modal>}
+  {ready&&assetsReady&&tutorial!=='done'&&panel===null&&<div className="coach-banner" role="region" aria-live="polite"><div className="coach-header"><strong>{GUIDE[tutorial].title}</strong><span style={{fontSize:11,color:'#c4afc9'}}>Hướng dẫn</span></div><p>{GUIDE[tutorial].body}</p><div className="coach-controls"><button onClick={guideAction}>{GUIDE[tutorial].button}</button><button className="skip" onClick={finishGuide}>Bỏ qua</button></div></div>}
   </main>;
 }

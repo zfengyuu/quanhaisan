@@ -1,6 +1,6 @@
 # 🐟 Quán Hải Sản – Câu Cá & Kinh Doanh
 
-Pixel-art browser game PWA: câu cá, nhập hải sản, bán cá bằng **xu ảo**, nâng cấp quán, khám phá vùng biển và **ủng hộ tự nguyện qua ảnh QR ngân hàng của tác giả**. Không có giao dịch tiền thật trong game, không tích hợp VietQR hay cổng thanh toán.
+Pixel-art browser game PWA: cốt truyện **Chuyện Bến Nhỏ**, hướng dẫn đầu game, NPC khách hàng tự đi vào quán, câu cá, nhập hải sản, bán cá bằng **xu ảo**, nâng cấp quán, khám phá vùng biển và **ủng hộ tự nguyện qua ảnh QR ngân hàng của tác giả**. Không có giao dịch tiền thật trong game, không tích hợp VietQR hay cổng thanh toán.
 
 ![Concept giao diện](public/assets/concept-preview.webp)
 
@@ -63,11 +63,19 @@ npm run build
 
 Push repo lên GitHub, import repo vào Vercel, cấu hình 2 biến `NEXT_PUBLIC_SUPABASE_*` trong **Environment Variables**. Truy cập HTTPS để cài PWA. Supabase Auth redirect URLs phải chứa domain chính xác. Nếu không cấu hình Supabase thì ứng dụng vẫn hoạt động ở demo mode.
 
+## Story Mode + onboarding + khách hàng tự di chuyển
+
+- **Hướng dẫn đầu game** gồm 4 thao tác: câu cá thành công, nhập một món, bán một món và mở nhật ký. Có thể bỏ qua, hoặc vào Cài đặt → **Xem lại hướng dẫn đầu game**. Bước hướng dẫn được ghi nhớ trong `localStorage` của thiết bị.
+- **Chuyện Bến Nhỏ** có 5 chương với hội thoại và mục tiêu, mở chương tiếp theo tự động theo số cá đã câu, số cá đã bán, số lần nâng cấp và vùng biển đã mở. Thành tích đã có trong `game_saves`; không cần sửa migration.
+- **Khách NPC Phaser** được vẽ bằng những sprite pixel riêng, sinh ngẫu nhiên theo thời gian, đi từ cổng đến bàn, chờ gọi món rồi ra khỏi quán. Nhấn khách để mở cửa sổ bán cá; sau khi bán thành công một khách đang đợi sẽ rời quán vui vẻ.
+- Trạng thái chờ của NPC hiện là **mô phỏng trên client**, không phải hệ thống đơn hàng đã xác thực trên máy chủ. Tiền xu và kho vẫn do Supabase RPC xác thực nếu đăng nhập. Nâng cấp sang bản production có thể dùng hàng đợi khách và order ở backend.
+- Cốt truyện và mục tiêu trong `src/lib/story.ts`; phần hiển thị ở `src/components/StoryPanel.tsx`; NPC ở `src/game/HarborStage.tsx`.
+
 ## Phạm vi MVP
 
-Đã có: giao diện theo concept, bản đồ tương tác Phaser, mini-game câu cá canh lực, kho 7 loại hải sản, nhập hàng, bán bằng xu ảo, nâng cấp, mở vùng biển, demo autosave, Supabase Auth/RPC SQL, QR donate popup, PWA. 
+Đã có: giao diện theo concept, bản đồ tương tác Phaser và NPC di chuyển ngẫu nhiên, 5 chương truyện, hướng dẫn đầu game, mini-game câu cá canh lực, kho 7 loại hải sản, nhập hàng, bán bằng xu ảo, nâng cấp, mở vùng biển, demo autosave, Supabase Auth/RPC SQL, QR donate popup, PWA.
 
-Chưa có: multiplayer, animation NPC theo sprite-sheet riêng, pathfinding, cơ chế câu cá nâng cao, phần thưởng donate, thanh toán, tự động deploy công khai. Background là một ảnh concept art đã crop thành bản đồ; để đạt chất lượng production cần chia thành tile/sprite, bổ sung animation và âm thanh riêng.
+Chưa có: multiplayer, sprite-sheet nhân vật cao cấp, pathfinding tránh vật cản, cơ chế câu cá nâng cao, phần thưởng donate, thanh toán, tự động deploy công khai. Background là một ảnh concept art đã crop thành bản đồ; để đạt chất lượng production cần chia thành tile/sprite, bổ sung animation và âm thanh riêng.
 
 ## Giấy phép
 
