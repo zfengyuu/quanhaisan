@@ -36,7 +36,7 @@ export default function HarborStage({onTarget,onCustomerCount,onCustomerExit,ser
     constructor(){super('HarborCourtyard')}
     preload(){
      this.load.image('courtyard','/assets/harbor-courtyard.webp?v=5');
-     for(const id of keys)this.load.spritesheet(id,`/assets/pixel/characters/${id}.png?v=5`,{frameWidth:64,frameHeight:96});
+     for(const id of keys)this.load.spritesheet(id,`/assets/pixel/characters/${id}.png?v=6`,{frameWidth:64,frameHeight:96});
      for(const id of ['ban-go','ghe-go','cay-canh','den-long'])this.load.image(id,`/assets/pixel/props/${id}.png`);
     }
     private report(){countRef.current?.(this.customers.filter(g=>g.state==='waiting').length)}

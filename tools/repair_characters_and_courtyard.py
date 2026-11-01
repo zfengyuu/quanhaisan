@@ -25,7 +25,8 @@ cols = {
     'khach-nu': [1373, 1415, 1457, 1500],
 }
 # Source is rows down / left / right / up, four successive walking frames each
-rows = [(193, 264), (262, 330), (330, 399), (398, 473)]
+# Calibrated row boundaries prevent clipping previous row's shoes into head region
+rows = [(186, 264), (274, 336), (343, 405), (404, 480)]
 folder = ROOT / 'public/assets/pixel/characters'
 folder.mkdir(parents=True, exist_ok=True)
 half_w = 19
@@ -58,9 +59,15 @@ for name, xs in cols.items():
                     primary = max(valid, key=lambda c: c[1] - c[2] * 25)
                     prim_j = primary[0]
                     prim_cx = centroids[prim_j][0]
+                    prim_top = stats[prim_j, cv2.CC_STAT_TOP]
                     for j, area, dist, is_edge in valid:
                         # Include only components belonging to the primary character
                         if abs(centroids[j][0] - prim_cx) <= 13:
+                            comp_top = stats[j, cv2.CC_STAT_TOP]
+                            comp_bot = comp_top + stats[j, cv2.CC_STAT_HEIGHT]
+                            # Reject any stray piece floating disconnected above the head
+                            if comp_bot < prim_top - 2:
+                                continue
                             if not (is_edge and area < 250 and dist > 9):
                                 good[labels == j] = 255
 
@@ -69,6 +76,24 @@ for name, xs in cols.items():
             bbox = pic.getbbox()
             if not bbox: continue
             pic = pic.crop(bbox)
+
+            # Strip any residual floating disconnected artifacts above the character's head
+            pic_arr = np.array(pic)
+            pic_alpha = pic_arr[:, :, 3]
+            row_has_pixels = np.any(pic_alpha > 0, axis=1)
+            active_rows = np.where(row_has_pixels)[0]
+            if len(active_rows) > 0:
+                # Find if there is a gap > 2 lines between top artifacts and the main body
+                for i in range(len(active_rows) - 1):
+                    if active_rows[i+1] - active_rows[i] >= 3:
+                        # Clear everything above the gap (stray floating pixels)
+                        pic_arr[:active_rows[i+1], :, 3] = 0
+                        break
+                pic = Image.fromarray(pic_arr, 'RGBA')
+                bbox2 = pic.getbbox()
+                if bbox2:
+                    pic = pic.crop(bbox2)
+
             pic.thumbnail((56, 80), Image.Resampling.LANCZOS)
             # Correct: EVERY frame is at its own x/y atlas position with exactly 1 character
             px = frame * 64 + (64 - pic.width) // 2
