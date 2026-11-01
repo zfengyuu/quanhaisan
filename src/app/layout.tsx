@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, maximumScale: 1, userScalable: false, themeColor: '#211539', viewportFit: 'cover' };
 export default function RootLayout({children}:{children:React.ReactNode}) {
-  return <html lang="vi"><body>{children}</body></html>;
+  return <html lang="vi" suppressHydrationWarning><body>{children}</body></html>;
 }

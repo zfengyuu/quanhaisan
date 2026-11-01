@@ -131,7 +131,18 @@ export default function GameApp(){
   },[fetchCloud,notify]);
   useEffect(()=>{if(ready&&!user)localStorage.setItem(LOCAL_KEY,JSON.stringify(game))},[game,ready,user]);
   useEffect(()=>{
-    if('serviceWorker' in navigator)void navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    if(process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator){
+      void navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    } else if(process.env.NODE_ENV !== 'production' && 'serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(regs=>{
+        for(const reg of regs) void reg.unregister();
+      });
+      if('caches' in window){
+        caches.keys().then(keys=>{
+          for(const k of keys) void caches.delete(k);
+        });
+      }
+    }
     const handler=(e:Event)=>{e.preventDefault();setInstallPrompt(e)};
     window.addEventListener('beforeinstallprompt',handler);
     return()=>window.removeEventListener('beforeinstallprompt',handler);

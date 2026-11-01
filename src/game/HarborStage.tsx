@@ -33,8 +33,8 @@ export default function HarborStage({onTarget,onCustomerCount,servedSignal=0,upg
     private onSeats=(n:number)=>this.setSeatCount(Math.min(seatSpots.length,2+n));
     constructor(){super('HarborCourtyard')}
     preload(){
-     this.load.image('courtyard','/assets/harbor-courtyard.webp?v=4');
-     for(const id of keys)this.load.spritesheet(id,`/assets/pixel/characters/${id}.png?v=4`,{frameWidth:64,frameHeight:96});
+     this.load.image('courtyard','/assets/harbor-courtyard.webp?v=5');
+     for(const id of keys)this.load.spritesheet(id,`/assets/pixel/characters/${id}.png?v=5`,{frameWidth:64,frameHeight:96});
      for(const id of ['ban-go','ghe-go','cay-canh','den-long'])this.load.image(id,`/assets/pixel/props/${id}.png`);
     }
     private report(){countRef.current?.(this.customers.filter(g=>g.state==='waiting').length)}
@@ -123,7 +123,7 @@ export default function HarborStage({onTarget,onCustomerCount,servedSignal=0,upg
       this.anims.create({key:`${id}-down`,frames:this.anims.generateFrameNumbers(id,{start:0,end:3}),frameRate:6,repeat:-1});
       this.anims.create({key:`${id}-left`,frames:this.anims.generateFrameNumbers(id,{start:4,end:7}),frameRate:7,repeat:-1});
       this.anims.create({key:`${id}-right`,frames:this.anims.generateFrameNumbers(id,{start:8,end:11}),frameRate:7,repeat:-1});
-      this.anims.create({key:`${id}-idle`,frames:[{key:id,frame:0},{key:id,frame:1},{key:id,frame:0},{key:id,frame:3}],frameRate:1.5,repeat:-1});
+      this.anims.create({key:`${id}-idle`,frames:[{key:id,frame:0}],frameRate:1,repeat:-1});
      }
      // Touchable zones on the architectural artwork, not on baked customers.
      for(const [x,y,w,h,target,label] of ([
