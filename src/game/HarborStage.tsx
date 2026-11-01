@@ -173,8 +173,7 @@ export default function HarborStage({
      s.shadow=this.add.ellipse(s.x,s.y+24,172,56,0x120807,.35).setDepth(s.y-25);
 
      // 2. High-contrast table (red street plastic for table 1-2, warm teak for table 3-5)
-     s.table=this.add.image(s.x,s.y,tableKey).setDisplaySize(146,142).setDepth(s.y+6).setInteractive({useHandCursor:true});
-     s.table.on('pointerdown',()=>targetRef.current('sell'));
+     s.table=this.add.image(s.x,s.y,tableKey).setDisplaySize(146,142).setDepth(s.y+6);
 
      // 3. 4 Stools around table: top, bottom, left, right (matching ocdem.dreek.site!)
      const topStool=this.add.image(s.x,s.y-46,stoolKey).setDisplaySize(52,52).setDepth(s.y-4);
@@ -444,8 +443,7 @@ export default function HarborStage({
       spawnY=openBike.y-12;
      }
 
-     const spriteA=this.add.sprite(spawnX-12,spawnY,keyA,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(spawnY+20).setInteractive({useHandCursor:true});
-     spriteA.on('pointerdown',()=>targetRef.current('sell'));
+     const spriteA=this.add.sprite(spawnX-12,spawnY,keyA,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(spawnY+20);
      const guestA:Guest={sprite:spriteA,state:'walking',seat,side:'left',dishId:chosenDish,key:keyA,seatedTexture:sitTexA,bikeSlot:openBike};
      this.customers.push(guestA);
 
@@ -454,8 +452,7 @@ export default function HarborStage({
 
      let guestB:Guest|undefined;
      if(isDuo){
-      const spriteB=this.add.sprite(spawnX+12,spawnY,keyB,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(spawnY+19).setInteractive({useHandCursor:true});
-      spriteB.on('pointerdown',()=>targetRef.current('sell'));
+      const spriteB=this.add.sprite(spawnX+12,spawnY,keyB,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(spawnY+19);
       guestB={sprite:spriteB,state:'walking',seat,side:'right',dishId:chosenDish,companion:guestA,key:keyB,seatedTexture:sitTexB,bikeSlot:openBike};
       guestA.companion=guestB;
       this.customers.push(guestB);
@@ -518,10 +515,9 @@ export default function HarborStage({
      });
     }
 
-    private resident(id:string,x:number,y:number,text:string,action:HarborTarget){
-     const sp=this.add.sprite(x,y,id,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(y+25).setInteractive({useHandCursor:true});
+    private resident(id:string,x:number,y:number,text:string){
+     const sp=this.add.sprite(x,y,id,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(y+25);
      const tag=this.add.text(x,y-128,text,{fontSize:'14px',fontFamily:'sans-serif',backgroundColor:'#382642c9',color:'#ffeeb8',padding:{x:6,y:4}}).setOrigin(.5).setDepth(1450);
-     sp.on('pointerdown',()=>targetRef.current(action));
      sp.play(`${id}-idle`,true);
      this.tweens.add({targets:sp,y:y-3,duration:1550+Math.random()*700,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
      return {sp,tag};
@@ -537,16 +533,6 @@ export default function HarborStage({
       this.anims.create({key:`${id}-idle`,frames:[{key:id,frame:0}],frameRate:1,repeat:-1});
      }
 
-     // Touchable zones on the architectural artwork
-     for(const [x,y,w,h,target,label] of ([
-      [0,60,318,350,'fish','🎣'],[0,430,285,450,'market','🧺'],[390,425,480,245,'sell','🪙']
-     ] as const)){
-      this.add.zone(x+w/2,y+h/2,w,h).setInteractive({useHandCursor:true}).on('pointerdown',()=>targetRef.current(target));
-      const spot=this.add.circle(x+w-40,y+45,21,0x241536,.84).setStrokeStyle(3,0xffd477).setDepth(1600);
-      const icon=this.add.text(x+w-56,y+28,label,{fontSize:'27px'}).setDepth(1601);
-      this.tweens.add({targets:[spot,icon],y:'-=5',duration:1300,yoyo:true,repeat:-1});
-     }
-
      this.setSeatCount(this.numberOfTables);
 
      // Decor plants with gentle sea breeze swaying
@@ -556,13 +542,12 @@ export default function HarborStage({
      }
 
      // Permanent villagers on the pier/market side
-     this.resident('chu-tam',280,404,'Chú Tám','fish');
-     this.resident('co-sau',283,694,'Cô Sáu','market');
+     this.resident('chu-tam',280,404,'Chú Tám');
+     this.resident('co-sau',283,694,'Cô Sáu');
 
      // Dedicated Waitress Mai (dynamic server)
-     this.mai=this.add.sprite(this.maiHome.x,this.maiHome.y,'phuc-vu',0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(this.maiHome.y+25).setInteractive({useHandCursor:true});
+     this.mai=this.add.sprite(this.maiHome.x,this.maiHome.y,'phuc-vu',0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(this.maiHome.y+25);
      this.maiTag=this.add.text(this.maiHome.x,this.maiHome.y-128,'Mai · Phục vụ',{fontSize:'14px',fontFamily:'sans-serif',backgroundColor:'#382642c9',color:'#ffeeb8',padding:{x:6,y:4}}).setOrigin(.5).setDepth(1450);
-     this.mai.on('pointerdown',()=>targetRef.current('sell'));
      this.mai.play('phuc-vu-idle',true);
      this.maiIdle=this.tweens.add({targets:this.mai,y:this.maiHome.y-3,duration:1550,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
 
@@ -615,5 +600,10 @@ export default function HarborStage({
   return()=>{disposed=true;instance?.destroy(true);gameRef.current=undefined};
  },[]);
 
- return <div className="harbor-stage" role="region" aria-label="Sân quán mở rộng với bàn ghế động và khách hàng chuyển động"><div className="harbor-fallback"/><div className="phaser-host" ref={holder}/></div>;
+ return (
+  <div className="harbor-stage" role="region" aria-label="Sân quán mở rộng với bàn ghế động và khách hàng chuyển động">
+   <div className="harbor-fallback"/>
+   <div className="phaser-host" ref={holder} style={{pointerEvents:isShiftActive?'auto':'none'}}/>
+  </div>
+ );
 }

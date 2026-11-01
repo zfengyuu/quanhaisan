@@ -83,6 +83,9 @@ function Modal({
       onMouseDown={(e) => {
         if (e.currentTarget === e.target) onClose();
       }}
+      onTouchEnd={(e) => {
+        if (e.currentTarget === e.target) onClose();
+      }}
     >
       <section
         className="hop game-modal"
@@ -633,13 +636,12 @@ export default function GameApp() {
       <div className="game-shell">
         {/* Authentic Top HUD matching ocdem.dreek.site */}
         <header className="hud">
-          <button
+          <div
             className="chip chip-gold"
-            onClick={() => setPanel('sell')}
             title="Tiền mặt"
           >
             💼 <b>{formatXu(game.coins)}</b>
-          </button>
+          </div>
           <button
             className="chip chip-gem"
             onClick={() => setPanel('donate')}
