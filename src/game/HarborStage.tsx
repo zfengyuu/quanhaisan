@@ -61,6 +61,13 @@ export default function HarborStage({
   void import('phaser').then(({default:Phaser})=>{
    if(disposed||!holder.current)return;
 
+   type BikeSlot={
+    x:number;
+    y:number;
+    occupied:boolean;
+    bikeSprite?:Phaser.GameObjects.Image;
+   };
+
    type Guest={
     sprite:Phaser.GameObjects.Sprite;
     orderBadge?:Phaser.GameObjects.Container;
@@ -72,6 +79,9 @@ export default function HarborStage({
     idle?:Phaser.Tweens.Tween;
     dishId:string;
     companion?:Guest;
+    key:string;
+    seatedTexture?:string;
+    bikeSlot?:BikeSlot;
    };
 
    type Seat={
@@ -93,6 +103,11 @@ export default function HarborStage({
    class Harbor extends Phaser.Scene{
     private customers:Guest[]=[];
     private numberOfTables=Math.min(seatSpots.length,2+initialUpgrades);
+    private bikeSlots:BikeSlot[]=[
+     {x:740,y:1030,occupied:false},
+     {x:840,y:1022,occupied:false},
+     {x:620,y:1035,occupied:false}
+    ];
     private isScenePaused=false;
     private serveQueue:Guest[]=[];
     private mai!:Phaser.GameObjects.Sprite;
@@ -219,10 +234,9 @@ export default function HarborStage({
      }
      this.report();
 
-     const exitX=960,exitY=938;
-     const dur=1800+Math.random()*400;
-     const key=g.sprite.texture.key;
-     g.sprite.play(`${key}-right`,true);
+     // Switch back to standing walk animation
+     const walkKey=g.key||'khach-nam';
+     g.sprite.setTexture(walkKey);
 
      // Cheerful heart emote when departing happy
      if(happy){
@@ -230,11 +244,33 @@ export default function HarborStage({
       this.tweens.add({targets:heart,y:heart.y-28,alpha:0,duration:1200,onComplete:()=>heart.destroy()});
      }
 
-     this.tweens.add({
-      targets:g.sprite,x:exitX,y:exitY,duration:dur,ease:'Linear',
-      onUpdate:()=>{g.sprite.setDepth(Math.floor(g.sprite.y)+26);},
-      onComplete:()=>this.removeGuest(g)
-     });
+     const bikeSlot=g.bikeSlot;
+     if(bikeSlot && bikeSlot.bikeSprite){
+      // Walk together to parked motorbike
+      this.walkEntity(g.sprite,undefined,walkKey,bikeSlot.x-10,bikeSlot.y-12,1200,()=>{
+       const bike=bikeSlot.bikeSprite;
+       if(bike){
+        this.tweens.add({
+         targets:bike,x:970,duration:1100,ease:'Cubic.easeIn',
+         onComplete:()=>{
+          bike.destroy();
+          bikeSlot.bikeSprite=undefined;
+          bikeSlot.occupied=false;
+         }
+        });
+       }
+       this.removeGuest(g);
+      });
+     } else {
+      const exitX=960,exitY=938;
+      const dur=1800+Math.random()*400;
+      g.sprite.play(`${walkKey}-right`,true);
+      this.tweens.add({
+       targets:g.sprite,x:exitX,y:exitY,duration:dur,ease:'Linear',
+       onUpdate:()=>{g.sprite.setDepth(Math.floor(g.sprite.y)+26);},
+       onComplete:()=>this.removeGuest(g)
+      });
+     }
     }
 
     private serveCustomer(){
@@ -366,62 +402,104 @@ export default function HarborStage({
      const seat=Phaser.Utils.Array.GetRandom(available);
      const target=seatSpots[seat];
      const chosenDish=Phaser.Utils.Array.GetRandom(dishKeys);
-     const isDuo=Math.random()<0.65;
+     const isDuo=Math.random()<0.75;
 
-     const keyA=Phaser.Utils.Array.GetRandom(guests);
-     const keyB=Phaser.Utils.Array.GetRandom(guests);
+     // Couple on a romantic date or regular guests
+     const isCouple=isDuo && Math.random()<0.85;
+     const keyA=isCouple?'khach-nam':Phaser.Utils.Array.GetRandom(guests);
+     const keyB=isCouple?'khach-nu':Phaser.Utils.Array.GetRandom(guests);
 
-     // Guest A sits on left stool facing right
-     const chairAX=target.x-72;
+     const sitTexA=keyA==='khach-nam'?'sit-nam-right':keyA==='khach-nu'?'sit-nu-right':'sit-nam-right';
+     const sitTexB=keyB==='khach-nu'?'sit-nu-left':keyB==='khach-nam'?'sit-nam-left':'sit-nu-left';
+
+     // Stool coordinates
+     const chairAX=target.x-70;
      const chairAY=target.y+8;
-     const spriteA=this.add.sprite(951,957,keyA,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(957).setInteractive({useHandCursor:true});
+     const chairBX=target.x+70;
+     const chairBY=target.y+8;
+
+     // Check if open bike parking spot exists
+     const openBike=this.bikeSlots.find(s=>!s.occupied);
+     let spawnX=951,spawnY=957;
+
+     if(isDuo && openBike){
+      openBike.occupied=true;
+      const isScooter=Math.random()<0.45;
+      const bikeKey=isScooter?'xe-ga':'xe-cub-left';
+      const bikeW=isScooter?42:108;
+      const bikeH=isScooter?90:68;
+
+      // Motorbike drives/wheels in to parking slot
+      const bike=this.add.image(960,openBike.y,bikeKey).setDisplaySize(bikeW,bikeH).setDepth(openBike.y+10);
+      openBike.bikeSprite=bike;
+      this.tweens.add({
+       targets:bike,x:openBike.x,duration:950,ease:'Cubic.easeOut'
+      });
+
+      // Cute couple love emote
+      const love=this.add.text(openBike.x,openBike.y-85,'❤️',{fontSize:'22px'}).setOrigin(.5).setDepth(1600);
+      this.tweens.add({targets:love,y:love.y-26,alpha:0,duration:1200,onComplete:()=>love.destroy()});
+
+      spawnX=openBike.x;
+      spawnY=openBike.y-12;
+     }
+
+     const spriteA=this.add.sprite(spawnX-12,spawnY,keyA,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(spawnY+20).setInteractive({useHandCursor:true});
      spriteA.on('pointerdown',()=>targetRef.current('sell'));
-     const guestA:Guest={sprite:spriteA,state:'walking',seat,side:'left',dishId:chosenDish};
+     const guestA:Guest={sprite:spriteA,state:'walking',seat,side:'left',dishId:chosenDish,key:keyA,seatedTexture:sitTexA,bikeSlot:openBike};
      this.customers.push(guestA);
 
-     const aisleAX=Math.min(880,chairAX+60);
+     const aisleAX=Math.min(880,chairAX+50);
      const aisleAY=938;
 
      let guestB:Guest|undefined;
      if(isDuo){
-      // Guest B sits on right stool facing left (matching user screenshot with 2 guests sitting across table)
-      const chairBX=target.x+72;
-      const chairBY=target.y+8;
-      const spriteB=this.add.sprite(965,960,keyB,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(956).setInteractive({useHandCursor:true});
+      const spriteB=this.add.sprite(spawnX+12,spawnY,keyB,0).setOrigin(.5,1).setDisplaySize(82,123).setDepth(spawnY+19).setInteractive({useHandCursor:true});
       spriteB.on('pointerdown',()=>targetRef.current('sell'));
-      guestB={sprite:spriteB,state:'walking',seat,side:'right',dishId:chosenDish,companion:guestA};
+      guestB={sprite:spriteB,state:'walking',seat,side:'right',dishId:chosenDish,companion:guestA,key:keyB,seatedTexture:sitTexB,bikeSlot:openBike};
       guestA.companion=guestB;
       this.customers.push(guestB);
 
-      this.time.delayedCall(220,()=>{
+      this.time.delayedCall(150,()=>{
        if(!spriteB.active)return;
        const aisleBX=Math.min(880,chairBX+40);
-       this.walkEntity(spriteB,undefined,keyB,aisleBX,aisleAY,1200,()=>{
-        this.walkEntity(spriteB,undefined,keyB,chairBX,chairBY,1400,()=>{
+       this.walkEntity(spriteB,undefined,keyB,aisleBX,aisleAY,1100,()=>{
+        this.walkEntity(spriteB,undefined,keyB,chairBX,chairBY,1350,()=>{
          if(!spriteB.active)return;
          guestB!.state='waiting';
-         spriteB.setFrame(4); // Faces left towards table
-         guestB!.idle=this.tweens.add({targets:spriteB,y:spriteB.y-2.5,duration:1300+Math.random()*450,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+         // Realistic seated posture: legs bent 90 degrees naturally over stool!
+         spriteB.anims.stop();
+         spriteB.setTexture(sitTexB);
+         spriteB.setDisplaySize(74,114);
+         spriteB.setDepth(target.y+4);
+         spriteB.setPosition(chairBX,chairBY);
+         guestB!.idle=this.tweens.add({targets:spriteB,y:chairBY-2,duration:1400+Math.random()*400,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
         });
        });
       });
      }
 
-     this.walkEntity(spriteA,undefined,keyA,aisleAX,aisleAY,1200,()=>{
-      this.walkEntity(spriteA,undefined,keyA,chairAX,chairAY,1400,()=>{
+     this.walkEntity(spriteA,undefined,keyA,aisleAX,aisleAY,1100,()=>{
+      this.walkEntity(spriteA,undefined,keyA,chairAX,chairAY,1350,()=>{
        if(!spriteA.active)return;
        guestA.state='waiting';
-       spriteA.setFrame(8); // Faces right towards table
+       // Realistic seated posture: legs bent 90 degrees naturally over stool!
+       spriteA.anims.stop();
+       spriteA.setTexture(sitTexA);
+       spriteA.setDisplaySize(74,114);
+       spriteA.setDepth(target.y+4);
+       spriteA.setPosition(chairAX,chairAY);
 
-       // Compact order badge directly above table center (like ocdem.dreek.site!)
-       const bubbleBg=this.add.ellipse(0,0,44,44,0xfffef7,0.95).setStrokeStyle(2,0x542d18);
-       const bubbleShadow=this.add.ellipse(0,4,40,36,0x100508,0.25).setDepth(-1);
-       const dishIcon=this.add.image(0,-1,chosenDish).setDisplaySize(32,32);
-       const timerRing=this.add.circle(0,0,20).setStrokeStyle(2,0x4eb25a,0.85);
+       // Compact order badge with Seafood + Red Soda Can matching ocdem screenshot!
+       const bubbleBg=this.add.ellipse(0,0,54,42,0xfffef7,0.95).setStrokeStyle(2,0x542d18);
+       const bubbleShadow=this.add.ellipse(0,4,50,36,0x100508,0.25).setDepth(-1);
+       const dishIcon=this.add.image(-10,-1,chosenDish).setDisplaySize(28,28);
+       const drinkIcon=this.add.image(13,-1,'lon-nuoc').setDisplaySize(18,24);
+       const timerRing=this.add.ellipse(0,0,52,40).setStrokeStyle(2,0x4eb25a,0.85);
 
-       const orderBadge=this.add.container(target.x,target.y-58,[bubbleShadow,bubbleBg,timerRing,dishIcon])
+       const orderBadge=this.add.container(target.x,target.y-58,[bubbleShadow,bubbleBg,timerRing,dishIcon,drinkIcon])
         .setDepth(1500)
-        .setSize(44,44)
+        .setSize(54,42)
         .setInteractive({useHandCursor:true});
        orderBadge.on('pointerdown',()=>targetRef.current('sell'));
 
@@ -431,7 +509,7 @@ export default function HarborStage({
        playCustomerBell();
        this.report();
 
-       guestA.idle=this.tweens.add({targets:spriteA,y:spriteA.y-2.5,duration:1300+Math.random()*450,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+       guestA.idle=this.tweens.add({targets:spriteA,y:chairAY-2,duration:1400+Math.random()*400,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
        guestA.timeout=this.time.delayedCall(36000+Math.random()*9000,()=>{
         this.exit(guestA);
         if(guestB)this.exit(guestB);
