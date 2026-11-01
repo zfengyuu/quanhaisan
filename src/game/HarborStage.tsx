@@ -11,6 +11,7 @@ type HarborProps={
  servedSignal?:number;
  upgrades?:number;
  isPaused?:boolean;
+ isShiftActive?:boolean;
 };
 
 /** A layered courtyard inspired by Vietnamese street food eateries: vibrant tables, 4 stools, dynamic waitstaff and guests. */
@@ -20,7 +21,8 @@ export default function HarborStage({
  onCustomerExitUnserved,
  servedSignal=0,
  upgrades=0,
- isPaused=false
+ isPaused=false,
+ isShiftActive=true
 }:HarborProps){
  const holder=useRef<HTMLDivElement>(null);
  const targetRef=useRef(onTarget);
@@ -48,6 +50,11 @@ export default function HarborStage({
   if(isPaused)gameRef.current?.events.emit('qhs:pause');
   else gameRef.current?.events.emit('qhs:resume');
  },[isPaused]);
+
+ useEffect(()=>{
+  if(isShiftActive)gameRef.current?.events.emit('qhs:start-shift');
+  else gameRef.current?.events.emit('qhs:end-shift');
+ },[isShiftActive]);
 
  useEffect(()=>{
   let disposed=false;let instance:import('phaser').Game|undefined;
@@ -98,8 +105,20 @@ export default function HarborStage({
 
     private onServed=()=>this.serveCustomer();
     private onSeats=(n:number)=>this.setSeatCount(Math.min(seatSpots.length,2+n));
+    private isShiftRunning=isShiftActive??true;
     private onPause=()=>this.pauseGame();
     private onResume=()=>this.resumeGame();
+    private onStartShift=()=>{
+     this.isShiftRunning=true;
+     this.arrive();
+     this.time.delayedCall(1200,()=>this.arrive());
+    };
+    private onEndShift=()=>{
+     this.isShiftRunning=false;
+     for(const g of [...this.customers]){
+      if(g.state==='waiting')this.exit(g,false);
+     }
+    };
 
     constructor(){super('HarborCourtyard')}
 
@@ -339,7 +358,7 @@ export default function HarborStage({
     }
 
     private arrive(){
-     if(this.isScenePaused)return;
+     if(!this.isShiftRunning||this.isScenePaused)return;
      if(this.customers.length>=Math.min(8,this.numberOfTables*2))return;
      const available=Array.from({length:this.numberOfTables},(_,i)=>i).filter(i=>!this.customers.some(g=>g.seat===i&&g.state!=='leaving'));
      if(!available.length)return;
@@ -485,17 +504,23 @@ export default function HarborStage({
      this.game.events.on('qhs:seats',this.onSeats);
      this.game.events.on('qhs:pause',this.onPause);
      this.game.events.on('qhs:resume',this.onResume);
+     this.game.events.on('qhs:start-shift',this.onStartShift);
+     this.game.events.on('qhs:end-shift',this.onEndShift);
 
      this.events.once(Phaser.Scenes.Events.SHUTDOWN,()=>{
       this.game.events.off('qhs:serve',this.onServed);
       this.game.events.off('qhs:seats',this.onSeats);
       this.game.events.off('qhs:pause',this.onPause);
       this.game.events.off('qhs:resume',this.onResume);
+      this.game.events.off('qhs:start-shift',this.onStartShift);
+      this.game.events.off('qhs:end-shift',this.onEndShift);
       countRef.current?.(0);
      });
 
-     this.time.delayedCall(800,()=>this.arrive());
-     this.time.delayedCall(2600,()=>this.arrive());
+     if(this.isShiftRunning){
+      this.time.delayedCall(800,()=>this.arrive());
+      this.time.delayedCall(2600,()=>this.arrive());
+     }
      this.time.addEvent({delay:5200,loop:true,callback:()=>this.arrive()});
     }
    }
